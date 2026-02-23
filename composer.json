@@ -3,7 +3,15 @@
     "description": "PHP SDK for the Immo Data French real estate API",
     "type": "library",
     "license": "MIT",
-    "keywords": ["trackstone", "immo-data", "real-estate", "api", "france", "valuation", "immobilier"],
+    "keywords": [
+        "trackstone",
+        "immo-data",
+        "real-estate",
+        "api",
+        "france",
+        "valuation",
+        "immobilier"
+    ],
     "homepage": "https://github.com/trackstone/immo-data-php-sdk",
     "authors": [
         {
