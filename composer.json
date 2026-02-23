@@ -1,0 +1,42 @@
+{
+    "name": "trackstone/immo-data-php-sdk",
+    "description": "PHP SDK for the Immo Data French real estate API",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["trackstone", "immo-data", "real-estate", "api", "france", "valuation", "immobilier"],
+    "homepage": "https://github.com/trackstone/immo-data-php-sdk",
+    "authors": [
+        {
+            "name": "Trackstone Dev Team",
+            "email": "hello@trackstone.fr"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "guzzlehttp/guzzle": "^7.5",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpunit/phpunit": "^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ImmoData\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ImmoData\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "cs": "php-cs-fixer fix",
+        "cs:check": "php-cs-fixer fix --dry-run --diff"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}
