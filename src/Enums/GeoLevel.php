@@ -10,6 +10,8 @@ enum GeoLevel: string
     case Department = 'department';
     case City = 'city';
     case District = 'district';
+    case Subdistrict = 'subdistrict';
     case Street = 'street';
+    case Parcel = 'parcel';
     case Address = 'address';
 }

@@ -9,6 +9,7 @@ use ImmoData\HttpClient\HttpClientInterface;
 use ImmoData\Resources\GeocodeResource;
 use ImmoData\Resources\GeoResource;
 use ImmoData\Resources\MarketResource;
+use ImmoData\Resources\TransactionsResource;
 use ImmoData\Resources\ValuationResource;
 
 final class ImmoDataClient
@@ -18,6 +19,7 @@ final class ImmoDataClient
     private ?GeocodeResource $geocode = null;
     private ?GeoResource $geo = null;
     private ?MarketResource $market = null;
+    private ?TransactionsResource $transactions = null;
 
     public function __construct(
         string $apiKey,
@@ -45,5 +47,10 @@ final class ImmoDataClient
     public function market(): MarketResource
     {
         return $this->market ??= new MarketResource($this->httpClient);
+    }
+
+    public function transactions(): TransactionsResource
+    {
+        return $this->transactions ??= new TransactionsResource($this->httpClient);
     }
 }
