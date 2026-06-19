@@ -55,6 +55,52 @@ final class GeocodeResultTest extends TestCase
         $this->assertSame([], $result->postCode);
     }
 
+    public function test_from_array_with_address_fields(): void
+    {
+        $result = GeocodeResult::fromArray([
+            'geoLevel' => 'address',
+            'departmentCode' => '49',
+            'cityName' => 'Saumur',
+            'inseeCode' => '49328',
+            'districtCode' => '4932801',
+            'subdistrictCode' => '493280101',
+            'postCode' => ['49400'],
+            'streetCode' => '49328OKOAVM',
+            'streetName' => 'Rue De Beaulieu',
+            'streetType' => 'Rue',
+            'streetNumber' => '26',
+            'streetSuffix' => '',
+            'addressId' => '49328OKOAVM-26',
+            'parcelIds' => ['49328000AZ0184'],
+            'center' => [-0.0712, 47.2603],
+            'label' => '26 Rue De Beaulieu, 49400 Saumur',
+        ]);
+
+        $this->assertSame(GeoLevel::Address, $result->geoLevel);
+        $this->assertSame('4932801', $result->districtCode);
+        $this->assertSame('493280101', $result->subdistrictCode);
+        $this->assertSame('49328OKOAVM', $result->streetCode);
+        $this->assertSame('Rue De Beaulieu', $result->streetName);
+        $this->assertSame('Rue', $result->streetType);
+        $this->assertSame('26', $result->streetNumber);
+        $this->assertSame('49328OKOAVM-26', $result->addressId);
+        $this->assertSame(['49328000AZ0184'], $result->parcelIds);
+    }
+
+    public function test_address_fields_default_to_null_or_empty(): void
+    {
+        $result = GeocodeResult::fromArray([
+            'geoLevel' => 'city',
+            'cityName' => 'Paris',
+            'label' => 'Paris',
+        ]);
+
+        $this->assertNull($result->districtCode);
+        $this->assertNull($result->streetName);
+        $this->assertNull($result->addressId);
+        $this->assertSame([], $result->parcelIds);
+    }
+
     public function test_from_array_list(): void
     {
         $results = GeocodeResult::fromArrayList([

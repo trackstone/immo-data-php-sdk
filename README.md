@@ -166,10 +166,19 @@ $results = $client->geocode()->search(
 | `departmentCode` | `?string` | Department code |
 | `cityName` | `?string` | City name |
 | `inseeCode` | `?string` | INSEE code |
+| `districtCode` | `?string` | District (grand quartier) code |
+| `subdistrictCode` | `?string` | IRIS code |
 | `postCode` | `string[]` | Post codes |
 | `boundingBox` | `?BoundingBox` | Bounding box coordinates |
 | `center` | `?Coordinates` | Center point (longitude, latitude) |
 | `label` | `string` | Human-readable label |
+| `streetCode` | `?string` | Street code (street/address results) |
+| `streetName` | `?string` | Street name (street/address results) |
+| `streetType` | `?string` | Street type, e.g. Rue, Avenue (street/address results) |
+| `streetNumber` | `?string` | Street number (address results) |
+| `streetSuffix` | `?string` | Street number suffix, e.g. bis, ter (address results) |
+| `addressId` | `?string` | Unique address identifier (address results) |
+| `parcelIds` | `string[]` | Cadastral parcel identifiers (address results) |
 
 ---
 
