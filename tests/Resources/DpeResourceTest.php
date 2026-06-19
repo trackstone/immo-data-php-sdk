@@ -141,6 +141,21 @@ final class DpeResourceTest extends TestCase
         $this->assertSame(450.0, $query['energyConsFinalMax']);
     }
 
+    public function test_get_by_number(): void
+    {
+        $http = new MockHttpClient();
+        $http->mockGet('/v1/dpe/2375E1234567A', $this->sampleApiResponse()['data'][0]);
+
+        $resource = new DpeResource($http);
+        $dpe = $resource->get('2375E1234567A');
+
+        $this->assertInstanceOf(Dpe::class, $dpe);
+        $this->assertSame('2375E1234567A', $dpe->dpeNumber);
+        $this->assertSame('C', $dpe->gesRating);
+        $this->assertSame(63.0, $dpe->realty->livingArea);
+        $this->assertSame('/v1/dpe/2375E1234567A', $http->getLastRequest()['path']);
+    }
+
     public function test_handles_omitted_optional_fields(): void
     {
         $http = new MockHttpClient();

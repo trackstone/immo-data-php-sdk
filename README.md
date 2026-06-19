@@ -70,7 +70,7 @@ The client exposes the following resources:
 | `geo()` | `region()`, `department()`, `city()`, `district()`, `subdistrict()` | Geographic data and boundaries |
 | `market()` | `priceHistory()`, `currentPrice()`, `saleDurationHistory()`, `currentSaleDuration()` | Market price and sale-duration data |
 | `transactions()` | `search()` | Real estate transactions (DVF) |
-| `dpe()` | `search()` | Energy Performance Diagnostics (DPE) |
+| `dpe()` | `search()`, `get()` | Energy Performance Diagnostics (DPE) |
 
 ---
 
@@ -312,6 +312,10 @@ $next = $client->dpe()->search(new DpeRequest(
     geoLevel: GeoLevel::City,
     searchAfter: $result->searchAfter,
 ));
+
+// Retrieve a single DPE by its ADEME number
+$dpe = $client->dpe()->get('2375E1234567A');
+echo $dpe->dpeRating; // "D"
 ```
 
 > DPE search accepts `GeoLevel::City`, `GeoLevel::District`, and `GeoLevel::Address`. The `Dpe` enum (A-G) is reused for both `dpeRating` and `gesRating` filters.
