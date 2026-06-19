@@ -68,7 +68,7 @@ The client exposes four resources:
 | `valuation()` | `estimate()` | Property price estimation |
 | `geocode()` | `search()` | Location search / autocomplete |
 | `geo()` | `region()`, `department()`, `city()`, `district()`, `subdistrict()` | Geographic data and boundaries |
-| `market()` | `priceHistory()`, `currentPrice()` | Market price data |
+| `market()` | `priceHistory()`, `currentPrice()`, `saleDurationHistory()` | Market price and sale-duration data |
 
 ---
 
@@ -240,6 +240,32 @@ echo $price->value; // 10234.5 (EUR/m²)
 
 ---
 
+### Sale Duration
+
+Retrieve how long properties take to sell, at the department, city, or district level. Sale duration is aggregated across all property types and is available from January 2022.
+
+```php
+use ImmoData\Enums\{GeoLevel, DurationUnit};
+
+// History of the average sale duration for a city
+$history = $client->market()->saleDurationHistory(
+    code: '75114',
+    geoLevel: GeoLevel::City,
+    startDate: '2022-01',
+    endDate: '2024-12',
+    unit: DurationUnit::Days,
+);
+
+echo $history->unit; // "days"
+foreach ($history->data as $point) {
+    echo "{$point->period}: {$point->value} days";
+}
+```
+
+> Sale-duration endpoints accept the same `GeoLevel::Department`, `GeoLevel::City`, and `GeoLevel::District` levels as the price endpoints. Dates use the `YYYY-MM` format.
+
+---
+
 ## Enums
 
 | Enum | Values |
@@ -251,6 +277,7 @@ echo $price->value; // 10234.5 (EUR/m²)
 | `MarketType` | `Sales` |
 | `Interval` | `Monthly` |
 | `Metric` | `SqmPrice` |
+| `DurationUnit` | `Days`, `Months` |
 
 ---
 

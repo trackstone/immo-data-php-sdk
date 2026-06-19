@@ -6,6 +6,8 @@ namespace ImmoData\Tests\Resources;
 
 use ImmoData\DTOs\CurrentPrice;
 use ImmoData\DTOs\PriceHistory;
+use ImmoData\DTOs\SaleDurationHistory;
+use ImmoData\Enums\DurationUnit;
 use ImmoData\Enums\GeoLevel;
 use ImmoData\Enums\RealtyType;
 use ImmoData\Resources\MarketResource;
@@ -130,5 +132,72 @@ final class MarketResourceTest extends TestCase
         );
 
         $this->assertSame(8500.0, $result->value);
+    }
+
+    public function test_sale_duration_history(): void
+    {
+        $http = new MockHttpClient();
+        $http->mockGet('/v1/market/sale-duration/history', [
+            'unit' => 'days',
+            'data' => [
+                ['period' => '2024-01', 'value' => 82],
+                ['period' => '2024-02', 'value' => 90],
+            ],
+        ]);
+
+        $resource = new MarketResource($http);
+        $result = $resource->saleDurationHistory(
+            code: '75114',
+            geoLevel: GeoLevel::City,
+        );
+
+        $this->assertInstanceOf(SaleDurationHistory::class, $result);
+        $this->assertSame('days', $result->unit);
+        $this->assertCount(2, $result->data);
+        $this->assertSame('2024-01', $result->data[0]->period);
+        $this->assertSame(82.0, $result->data[0]->value);
+
+        $query = $http->getLastRequest()['query'];
+        $this->assertSame('75114', $query['code']);
+        $this->assertSame('city', $query['geoLevel']);
+        $this->assertSame('monthly', $query['interval']);
+        $this->assertSame('days', $query['unit']);
+    }
+
+    public function test_sale_duration_history_with_dates_and_unit(): void
+    {
+        $http = new MockHttpClient();
+        $http->mockGet('/v1/market/sale-duration/history', [
+            'unit' => 'months',
+            'data' => [],
+        ]);
+
+        $resource = new MarketResource($http);
+        $resource->saleDurationHistory(
+            code: '75',
+            geoLevel: GeoLevel::Department,
+            startDate: '2022-01',
+            endDate: '2024-12',
+            unit: DurationUnit::Months,
+        );
+
+        $query = $http->getLastRequest()['query'];
+        $this->assertSame('2022-01', $query['startDate']);
+        $this->assertSame('2024-12', $query['endDate']);
+        $this->assertSame('months', $query['unit']);
+    }
+
+    public function test_sale_duration_history_rejects_region_geo_level(): void
+    {
+        $http = new MockHttpClient();
+        $resource = new MarketResource($http);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Market endpoints only support geo levels');
+
+        $resource->saleDurationHistory(
+            code: '11',
+            geoLevel: GeoLevel::Region,
+        );
     }
 }
