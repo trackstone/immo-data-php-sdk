@@ -68,7 +68,7 @@ The client exposes four resources:
 | `valuation()` | `estimate()` | Property price estimation |
 | `geocode()` | `search()` | Location search / autocomplete |
 | `geo()` | `region()`, `department()`, `city()`, `district()`, `subdistrict()` | Geographic data and boundaries |
-| `market()` | `priceHistory()`, `currentPrice()`, `saleDurationHistory()` | Market price and sale-duration data |
+| `market()` | `priceHistory()`, `currentPrice()`, `saleDurationHistory()`, `currentSaleDuration()` | Market price and sale-duration data |
 
 ---
 
@@ -260,9 +260,19 @@ echo $history->unit; // "days"
 foreach ($history->data as $point) {
     echo "{$point->period}: {$point->value} days";
 }
+
+// Current average sale duration for a department
+$current = $client->market()->currentSaleDuration(
+    code: '75',
+    geoLevel: GeoLevel::Department,
+    unit: DurationUnit::Months,
+);
+
+echo $current->unit;  // "months"
+echo $current->value; // 3.0 (null if no data available)
 ```
 
-> Sale-duration endpoints accept the same `GeoLevel::Department`, `GeoLevel::City`, and `GeoLevel::District` levels as the price endpoints. Dates use the `YYYY-MM` format.
+> Sale-duration endpoints accept the same `GeoLevel::Department`, `GeoLevel::City`, and `GeoLevel::District` levels as the price endpoints. Dates use the `YYYY-MM` format. `currentSaleDuration()->value` is `null` when no data is available.
 
 ---
 

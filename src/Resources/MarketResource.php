@@ -6,6 +6,7 @@ namespace ImmoData\Resources;
 
 use ImmoData\DTOs\CurrentPrice;
 use ImmoData\DTOs\PriceHistory;
+use ImmoData\DTOs\SaleDurationCurrent;
 use ImmoData\DTOs\SaleDurationHistory;
 use ImmoData\Enums\DurationUnit;
 use ImmoData\Enums\GeoLevel;
@@ -104,6 +105,24 @@ final class MarketResource
         $response = $this->httpClient->get('/v1/market/sale-duration/history', $params);
 
         return SaleDurationHistory::fromArray($response);
+    }
+
+    public function currentSaleDuration(
+        string $code,
+        GeoLevel $geoLevel,
+        DurationUnit $unit = DurationUnit::Days,
+    ): SaleDurationCurrent {
+        $this->validateGeoLevel($geoLevel);
+
+        $params = [
+            'code' => $code,
+            'geoLevel' => $geoLevel->value,
+            'unit' => $unit->value,
+        ];
+
+        $response = $this->httpClient->get('/v1/market/sale-duration/current', $params);
+
+        return SaleDurationCurrent::fromArray($response);
     }
 
     private function validateGeoLevel(GeoLevel $geoLevel): void

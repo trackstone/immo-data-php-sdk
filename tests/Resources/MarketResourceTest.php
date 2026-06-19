@@ -6,6 +6,7 @@ namespace ImmoData\Tests\Resources;
 
 use ImmoData\DTOs\CurrentPrice;
 use ImmoData\DTOs\PriceHistory;
+use ImmoData\DTOs\SaleDurationCurrent;
 use ImmoData\DTOs\SaleDurationHistory;
 use ImmoData\Enums\DurationUnit;
 use ImmoData\Enums\GeoLevel;
@@ -199,5 +200,48 @@ final class MarketResourceTest extends TestCase
             code: '11',
             geoLevel: GeoLevel::Region,
         );
+    }
+
+    public function test_current_sale_duration(): void
+    {
+        $http = new MockHttpClient();
+        $http->mockGet('/v1/market/sale-duration/current', [
+            'unit' => 'days',
+            'value' => 90,
+        ]);
+
+        $resource = new MarketResource($http);
+        $result = $resource->currentSaleDuration(
+            code: '75114',
+            geoLevel: GeoLevel::City,
+        );
+
+        $this->assertInstanceOf(SaleDurationCurrent::class, $result);
+        $this->assertSame('days', $result->unit);
+        $this->assertSame(90.0, $result->value);
+
+        $query = $http->getLastRequest()['query'];
+        $this->assertSame('75114', $query['code']);
+        $this->assertSame('city', $query['geoLevel']);
+        $this->assertSame('days', $query['unit']);
+    }
+
+    public function test_current_sale_duration_handles_null_value(): void
+    {
+        $http = new MockHttpClient();
+        $http->mockGet('/v1/market/sale-duration/current', [
+            'unit' => 'months',
+            'value' => null,
+        ]);
+
+        $resource = new MarketResource($http);
+        $result = $resource->currentSaleDuration(
+            code: '99999',
+            geoLevel: GeoLevel::City,
+            unit: DurationUnit::Months,
+        );
+
+        $this->assertNull($result->value);
+        $this->assertSame('months', $result->unit);
     }
 }
