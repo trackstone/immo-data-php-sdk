@@ -35,7 +35,7 @@ $request = new ValuationRequest(
 $result = $client->valuation()->estimate($request);
 
 echo $result->mainValuation; // 485000.0
-echo $result->confidence;    // 85
+echo $result->confidence;    // 4
 ```
 
 ## Configuration
@@ -104,7 +104,7 @@ $result = $client->valuation()->estimate($request);
 $result->mainValuation;  // float — estimated price
 $result->upperValuation; // float — upper bound
 $result->lowerValuation; // float — lower bound
-$result->confidence;     // int   — confidence score (0-100)
+$result->confidence;     // int   — confidence score (0-5)
 ```
 
 **Required parameters:** `longitude`, `latitude`, `realtyType`, `nbRooms`, `livingArea`
