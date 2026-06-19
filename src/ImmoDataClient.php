@@ -6,6 +6,7 @@ namespace ImmoData;
 
 use ImmoData\HttpClient\GuzzleHttpClient;
 use ImmoData\HttpClient\HttpClientInterface;
+use ImmoData\Resources\DpeResource;
 use ImmoData\Resources\GeocodeResource;
 use ImmoData\Resources\GeoResource;
 use ImmoData\Resources\MarketResource;
@@ -20,6 +21,7 @@ final class ImmoDataClient
     private ?GeoResource $geo = null;
     private ?MarketResource $market = null;
     private ?TransactionsResource $transactions = null;
+    private ?DpeResource $dpe = null;
 
     public function __construct(
         string $apiKey,
@@ -52,5 +54,10 @@ final class ImmoDataClient
     public function transactions(): TransactionsResource
     {
         return $this->transactions ??= new TransactionsResource($this->httpClient);
+    }
+
+    public function dpe(): DpeResource
+    {
+        return $this->dpe ??= new DpeResource($this->httpClient);
     }
 }

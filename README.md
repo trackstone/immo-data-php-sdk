@@ -61,7 +61,7 @@ $client = new ImmoDataClient(
 
 ## Resources
 
-The client exposes four resources:
+The client exposes the following resources:
 
 | Resource | Method | Description |
 |----------|--------|-------------|
@@ -69,6 +69,8 @@ The client exposes four resources:
 | `geocode()` | `search()` | Location search / autocomplete |
 | `geo()` | `region()`, `department()`, `city()`, `district()`, `subdistrict()` | Geographic data and boundaries |
 | `market()` | `priceHistory()`, `currentPrice()`, `saleDurationHistory()`, `currentSaleDuration()` | Market price and sale-duration data |
+| `transactions()` | `search()` | Real estate transactions (DVF) |
+| `dpe()` | `search()` | Energy Performance Diagnostics (DPE) |
 
 ---
 
@@ -276,6 +278,46 @@ echo $current->value; // 3.0 (null if no data available)
 
 ---
 
+### DPE (Energy Performance Diagnostics)
+
+Search Energy Performance Diagnostics (DPE). Like transactions, DPE search supports either `code` + `geoLevel` or `latitude` + `longitude` + `radius`, and is paginated with a `searchAfter` cursor.
+
+```php
+use ImmoData\Enums\{GeoLevel, Dpe, RealtyType, DpeSortBy, SortOrder};
+use ImmoData\Requests\DpeRequest;
+
+$result = $client->dpe()->search(new DpeRequest(
+    code: '75114',
+    geoLevel: GeoLevel::City,
+    dpeRating: [Dpe::F, Dpe::G],          // energy label (étiquette énergie)
+    gesRating: [Dpe::E, Dpe::F, Dpe::G],  // climate label (étiquette climat)
+    realtyType: [RealtyType::Apartment],
+    sortBy: DpeSortBy::Date,
+    sortOrder: SortOrder::Desc,
+    size: 20,
+));
+
+echo $result->total;
+foreach ($result->data as $dpe) {
+    echo $dpe->dpeNumber;       // "2375E1234567A"
+    echo $dpe->dpeRating;       // "D"
+    echo $dpe->energyConsFinal; // 180.5 (kWh/m²/an)
+    echo $dpe->location?->address?->cityName;
+    echo $dpe->realty?->realtyType; // "apartment"
+}
+
+// Next page
+$next = $client->dpe()->search(new DpeRequest(
+    code: '75114',
+    geoLevel: GeoLevel::City,
+    searchAfter: $result->searchAfter,
+));
+```
+
+> DPE search accepts `GeoLevel::City`, `GeoLevel::District`, and `GeoLevel::Address`. The `Dpe` enum (A-G) is reused for both `dpeRating` and `gesRating` filters.
+
+---
+
 ## Enums
 
 | Enum | Values |
@@ -288,6 +330,7 @@ echo $current->value; // 3.0 (null if no data available)
 | `Interval` | `Monthly` |
 | `Metric` | `SqmPrice` |
 | `DurationUnit` | `Days`, `Months` |
+| `DpeSortBy` | `Date`, `LivingArea`, `EnergyConsFinal` |
 
 ---
 
