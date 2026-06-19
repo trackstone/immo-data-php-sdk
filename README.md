@@ -244,7 +244,7 @@ $price = $client->market()->currentPrice(
     realtyType: RealtyType::Apartment,
 );
 
-echo $price->value; // 10234.5 (EUR/m²)
+echo $price->value; // 10234.5 (EUR/m², null if no data available)
 ```
 
 > Market endpoints only support `GeoLevel::Department`, `GeoLevel::City`, and `GeoLevel::District`. Using other levels will throw an `InvalidArgumentException`.

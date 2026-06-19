@@ -8,14 +8,14 @@ final readonly class CurrentPrice
 {
     public function __construct(
         public string $metric,
-        public float $value,
+        public ?float $value,
     ) {}
 
     public static function fromArray(array $data): self
     {
         return new self(
             metric: $data['metric'],
-            value: (float) $data['value'],
+            value: isset($data['value']) ? (float) $data['value'] : null,
         );
     }
 }
