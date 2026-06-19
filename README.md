@@ -35,7 +35,7 @@ $request = new ValuationRequest(
 $result = $client->valuation()->estimate($request);
 
 echo $result->mainValuation; // 485000.0
-echo $result->confidence;    // 85
+echo $result->confidence;    // 4
 ```
 
 ## Configuration
@@ -61,14 +61,16 @@ $client = new ImmoDataClient(
 
 ## Resources
 
-The client exposes four resources:
+The client exposes the following resources:
 
 | Resource | Method | Description |
 |----------|--------|-------------|
 | `valuation()` | `estimate()` | Property price estimation |
 | `geocode()` | `search()` | Location search / autocomplete |
 | `geo()` | `region()`, `department()`, `city()`, `district()`, `subdistrict()` | Geographic data and boundaries |
-| `market()` | `priceHistory()`, `currentPrice()` | Market price data |
+| `market()` | `priceHistory()`, `currentPrice()`, `saleDurationHistory()`, `currentSaleDuration()` | Market price and sale-duration data |
+| `transactions()` | `search()` | Real estate transactions (DVF) |
+| `dpe()` | `search()`, `get()` | Energy Performance Diagnostics (DPE) |
 
 ---
 
@@ -102,7 +104,7 @@ $result = $client->valuation()->estimate($request);
 $result->mainValuation;  // float — estimated price
 $result->upperValuation; // float — upper bound
 $result->lowerValuation; // float — lower bound
-$result->confidence;     // int   — confidence score (0-100)
+$result->confidence;     // int   — confidence score (0-5)
 ```
 
 **Required parameters:** `longitude`, `latitude`, `realtyType`, `nbRooms`, `livingArea`
@@ -164,7 +166,16 @@ $results = $client->geocode()->search(
 | `departmentCode` | `?string` | Department code |
 | `cityName` | `?string` | City name |
 | `inseeCode` | `?string` | INSEE code |
+| `districtCode` | `?string` | District (grand quartier) code |
+| `subdistrictCode` | `?string` | IRIS code |
 | `postCode` | `string[]` | Post codes |
+| `streetCode` | `?string` | Street code (street/address results) |
+| `streetName` | `?string` | Street name (street/address results) |
+| `streetType` | `?string` | Street type, e.g. Rue, Avenue (street/address results) |
+| `streetNumber` | `?string` | Street number (address results) |
+| `streetSuffix` | `?string` | Street number suffix, e.g. bis, ter (address results) |
+| `addressId` | `?string` | Unique address identifier (address results) |
+| `parcelIds` | `string[]` | Cadastral parcel identifiers (address results) |
 | `boundingBox` | `?BoundingBox` | Bounding box coordinates |
 | `center` | `?Coordinates` | Center point (longitude, latitude) |
 | `label` | `string` | Human-readable label |
@@ -233,10 +244,90 @@ $price = $client->market()->currentPrice(
     realtyType: RealtyType::Apartment,
 );
 
-echo $price->value; // 10234.5 (EUR/m²)
+echo $price->value; // 10234.5 (EUR/m², null if no data available)
 ```
 
 > Market endpoints only support `GeoLevel::Department`, `GeoLevel::City`, and `GeoLevel::District`. Using other levels will throw an `InvalidArgumentException`.
+
+---
+
+### Sale Duration
+
+Retrieve how long properties take to sell, at the department, city, or district level. Sale duration is aggregated across all property types and is available from January 2022.
+
+```php
+use ImmoData\Enums\{GeoLevel, DurationUnit};
+
+// History of the average sale duration for a city
+$history = $client->market()->saleDurationHistory(
+    code: '75114',
+    geoLevel: GeoLevel::City,
+    startDate: '2022-01',
+    endDate: '2024-12',
+    unit: DurationUnit::Days,
+);
+
+echo $history->unit; // "days"
+foreach ($history->data as $point) {
+    echo "{$point->period}: {$point->value} days";
+}
+
+// Current average sale duration for a department
+$current = $client->market()->currentSaleDuration(
+    code: '75',
+    geoLevel: GeoLevel::Department,
+    unit: DurationUnit::Months,
+);
+
+echo $current->unit;  // "months"
+echo $current->value; // 3.0 (null if no data available)
+```
+
+> Sale-duration endpoints accept the same `GeoLevel::Department`, `GeoLevel::City`, and `GeoLevel::District` levels as the price endpoints. Dates use the `YYYY-MM` format. `currentSaleDuration()->value` is `null` when no data is available.
+
+---
+
+### DPE (Energy Performance Diagnostics)
+
+Search Energy Performance Diagnostics (DPE). Like transactions, DPE search supports either `code` + `geoLevel` or `latitude` + `longitude` + `radius`, and is paginated with a `searchAfter` cursor.
+
+```php
+use ImmoData\Enums\{GeoLevel, Dpe, RealtyType, DpeSortBy, SortOrder};
+use ImmoData\Requests\DpeRequest;
+
+$result = $client->dpe()->search(new DpeRequest(
+    code: '75114',
+    geoLevel: GeoLevel::City,
+    dpeRating: [Dpe::F, Dpe::G],          // energy label (étiquette énergie)
+    gesRating: [Dpe::E, Dpe::F, Dpe::G],  // climate label (étiquette climat)
+    realtyType: [RealtyType::Apartment],
+    sortBy: DpeSortBy::Date,
+    sortOrder: SortOrder::Desc,
+    size: 20,
+));
+
+echo $result->total;
+foreach ($result->data as $dpe) {
+    echo $dpe->dpeNumber;       // "2375E1234567A"
+    echo $dpe->dpeRating;       // "D"
+    echo $dpe->energyConsFinal; // 180.5 (kWh/m²/an)
+    echo $dpe->location?->address?->cityName;
+    echo $dpe->realty?->realtyType; // "apartment"
+}
+
+// Next page
+$next = $client->dpe()->search(new DpeRequest(
+    code: '75114',
+    geoLevel: GeoLevel::City,
+    searchAfter: $result->searchAfter,
+));
+
+// Retrieve a single DPE by its ADEME number
+$dpe = $client->dpe()->get('2375E1234567A');
+echo $dpe->dpeRating; // "D"
+```
+
+> DPE search accepts `GeoLevel::City`, `GeoLevel::District`, and `GeoLevel::Address`. The `Dpe` enum (A-G) is reused for both `dpeRating` and `gesRating` filters.
 
 ---
 
@@ -251,6 +342,8 @@ echo $price->value; // 10234.5 (EUR/m²)
 | `MarketType` | `Sales` |
 | `Interval` | `Monthly` |
 | `Metric` | `SqmPrice` |
+| `DurationUnit` | `Days`, `Months` |
+| `DpeSortBy` | `Date`, `LivingArea`, `EnergyConsFinal` |
 
 ---
 

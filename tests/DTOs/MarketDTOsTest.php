@@ -48,4 +48,15 @@ final class MarketDTOsTest extends TestCase
 
         $this->assertSame(9800.0, $price->value);
     }
+
+    public function test_current_price_handles_null_value(): void
+    {
+        $price = CurrentPrice::fromArray([
+            'metric' => 'sqm_price',
+            'value' => null,
+        ]);
+
+        $this->assertSame('sqm_price', $price->metric);
+        $this->assertNull($price->value);
+    }
 }
