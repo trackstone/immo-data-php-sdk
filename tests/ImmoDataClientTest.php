@@ -7,6 +7,7 @@ namespace ImmoData\Tests;
 use ImmoData\ImmoDataClient;
 use ImmoData\Resources\GeocodeResource;
 use ImmoData\Resources\GeoResource;
+use ImmoData\Resources\ListingsResource;
 use ImmoData\Resources\MarketResource;
 use ImmoData\Resources\ValuationResource;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +25,7 @@ final class ImmoDataClientTest extends TestCase
         $this->assertInstanceOf(GeocodeResource::class, $client->geocode());
         $this->assertInstanceOf(GeoResource::class, $client->geo());
         $this->assertInstanceOf(MarketResource::class, $client->market());
+        $this->assertInstanceOf(ListingsResource::class, $client->listings());
     }
 
     public function test_returns_same_resource_instance(): void

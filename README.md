@@ -71,6 +71,7 @@ The client exposes the following resources:
 | `market()` | `priceHistory()`, `currentPrice()`, `saleDurationHistory()`, `currentSaleDuration()` | Market price and sale-duration data |
 | `transactions()` | `search()` | Real estate transactions (DVF) |
 | `dpe()` | `search()`, `get()` | Energy Performance Diagnostics (DPE) |
+| `listings()` | `statistics()` | Aggregated statistics on listings for sale |
 
 ---
 
@@ -331,6 +332,67 @@ echo $dpe->dpeRating; // "D"
 
 ---
 
+### Listings Statistics
+
+Aggregated statistics on listings for sale (rolling 2-year window), to position a property on its market. Pick numeric metrics and statistics (mean, count, percentiles), filter the cohort (geography + property characteristics), and optionally group results (by period, DPE rating, or custom ranges via `bounds`).
+
+```php
+use ImmoData\Enums\{GeoLevel, ListingGroupBy, ListingMetric, ListingStat, RealtyType};
+use ImmoData\Requests\ListingsStatisticsRequest;
+
+// Ungrouped: statistics on the whole cohort
+$result = $client->listings()->statistics(new ListingsStatisticsRequest(
+    metrics: [ListingMetric::SquareMeterPrice, ListingMetric::Price],
+    stats: [ListingStat::Mean, ListingStat::Percentile],
+    realtyType: RealtyType::Apartment,
+    percentiles: [10, 25, 50, 75, 90],
+    code: '75114',
+    geoLevel: GeoLevel::City,
+));
+
+$bucket = $result->data[0];
+echo $bucket->size; // 1391 listings in the cohort
+echo $bucket->metrics['squareMeterPrice']->mean; // 9500.2
+foreach ($bucket->metrics['squareMeterPrice']->percentiles as $p) {
+    echo "P{$p->percentile}: {$p->value}";
+}
+
+// Grouped by month
+$result = $client->listings()->statistics(new ListingsStatisticsRequest(
+    metrics: [ListingMetric::SquareMeterPrice],
+    stats: [ListingStat::Mean],
+    realtyType: RealtyType::Apartment,
+    groupBy: ListingGroupBy::Month,
+    code: '75114',
+    geoLevel: GeoLevel::City,
+));
+
+foreach ($result->data as $bucket) {
+    echo "{$bucket->key}: {$bucket->metrics['squareMeterPrice']->mean}"; // "2026-01: 9450.8"
+}
+
+// Grouped by price ranges (bounds required, last range is open-ended "N+")
+$result = $client->listings()->statistics(new ListingsStatisticsRequest(
+    metrics: [ListingMetric::DaysOnMarket],
+    stats: [ListingStat::Mean, ListingStat::Count],
+    realtyType: RealtyType::Apartment,
+    groupBy: ListingGroupBy::Price,
+    bounds: [200000, 300000, 500000],
+    code: '75114',
+    geoLevel: GeoLevel::City,
+));
+
+foreach ($result->data as $bucket) {
+    echo "{$bucket->from} - {$bucket->to}: {$bucket->size} listings";
+}
+```
+
+Filters: `isActive` (active vs withdrawn listings), `isNew` (new builds), `condition`, `dateRef`/`dateMin`/`dateMax` (`DateRef::Listed` or `DateRef::Removed` timeline), `dpeRating`, plus `priceMin/Max`, `sqmPriceMin/Max`, `daysOnMarketMin/Max`, `livingAreaMin/Max`, `roomsMin/Max`, `bedroomsMin/Max`, `floorMin/Max` (apartments), `landAreaMin/Max` (houses). Geographic search accepts either `code` + `geoLevel` or `latitude` + `longitude` + `radius`.
+
+> Listings statistics accept `GeoLevel::City`, `GeoLevel::District`, and `GeoLevel::Subdistrict`.
+
+---
+
 ## Enums
 
 | Enum | Values |
@@ -344,6 +406,10 @@ echo $dpe->dpeRating; // "D"
 | `Metric` | `SqmPrice` |
 | `DurationUnit` | `Days`, `Months` |
 | `DpeSortBy` | `Date`, `LivingArea`, `EnergyConsFinal` |
+| `ListingMetric` | `SquareMeterPrice`, `Price`, `DaysOnMarket`, `LivingArea`, `NumberOfRooms` |
+| `ListingStat` | `Mean`, `Count`, `Percentile` |
+| `ListingGroupBy` | `Month`, `Quarter`, `Year`, `DpeRating`, `NumberOfRooms`, `SquareMeterPrice`, `Price`, `DaysOnMarket`, `LivingArea` |
+| `DateRef` | `Listed`, `Removed` |
 
 ---
 

@@ -9,6 +9,7 @@ use ImmoData\HttpClient\HttpClientInterface;
 use ImmoData\Resources\DpeResource;
 use ImmoData\Resources\GeocodeResource;
 use ImmoData\Resources\GeoResource;
+use ImmoData\Resources\ListingsResource;
 use ImmoData\Resources\MarketResource;
 use ImmoData\Resources\TransactionsResource;
 use ImmoData\Resources\ValuationResource;
@@ -22,6 +23,7 @@ final class ImmoDataClient
     private ?MarketResource $market = null;
     private ?TransactionsResource $transactions = null;
     private ?DpeResource $dpe = null;
+    private ?ListingsResource $listings = null;
 
     public function __construct(
         string $apiKey,
@@ -59,5 +61,10 @@ final class ImmoDataClient
     public function dpe(): DpeResource
     {
         return $this->dpe ??= new DpeResource($this->httpClient);
+    }
+
+    public function listings(): ListingsResource
+    {
+        return $this->listings ??= new ListingsResource($this->httpClient);
     }
 }
